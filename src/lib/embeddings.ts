@@ -1,16 +1,34 @@
-import OpenAI from "openai";
+import { pipeline, type FeatureExtractionPipeline } from "@huggingface/transformers";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// Cache the pipeline so the model loads once, not per request
+let extractor: FeatureExtractionPipeline | null = null;
+
+async function getExtractor(): Promise<FeatureExtractionPipeline> {
+  if (!extractor) {
+    extractor = await pipeline(
+      "feature-extraction",
+      "Xenova/all-MiniLM-L6-v2",
+      { dtype: "fp32" }
+    );
+  }
+  return extractor;
+}
 
 export async function generateEmbeddings(
   texts: string[]
 ): Promise<number[][]> {
-  // OpenAI supports batch embedding — send all chunks at once
-  // instead of one-by-one to save time and API calls
-  const response = await openai.embeddings.create({
-    model: "text-embedding-3-small",
-    input: texts,
-  });
+  const ext = await getExtractor();
+  const results: number[][] = [];
 
-  return response.data.map((item) => item.embedding);
+  // Process one at a time to avoid memory issues
+  // The model is small so this is still fast
+  for (const text of texts) {
+    const output = await ext(text, {
+      pooling: "mean",
+      normalize: true,
+    });
+    results.push(Array.from(output.data as Float32Array));
+  }
+
+  return results;
 }

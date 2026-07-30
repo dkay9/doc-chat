@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import pdf from "pdf-parse";
+import { extractText } from "unpdf";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { supabase } from "@/lib/supabase";
 import { generateEmbeddings } from "@/lib/embeddings";
@@ -18,10 +18,11 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Parse PDF → raw text
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const parsed = await pdf(buffer);
+    const buffer = await file.arrayBuffer();
+    const { text: pages, totalPages } = await extractText(new Uint8Array(buffer));
+    const text = pages.join("\n");
 
-    if (!parsed.text.trim()) {
+    if (!text.trim()) {
       return NextResponse.json(
         { error: "Could not extract text from this PDF" },
         { status: 422 }
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest) {
       chunkOverlap: 200,
     });
 
-    const chunks = await splitter.createDocuments([parsed.text]);
+    const chunks = await splitter.createDocuments([text]);
 
     // 4. Generate embeddings for all chunks
     const chunkTexts = chunks.map((chunk) => chunk.pageContent);
@@ -48,7 +49,7 @@ export async function POST(req: NextRequest) {
         mime_type: file.type,
         file_size: file.size,
         metadata: {
-          total_pages: parsed.numpages,
+          total_pages: totalPages,
           total_chunks: chunks.length,
         },
       })
@@ -84,7 +85,7 @@ export async function POST(req: NextRequest) {
       success: true,
       document_id: doc.id,
       chunks_stored: chunks.length,
-      total_pages: parsed.numpages,
+      total_pages: totalPages,
     });
   } catch (error) {
     console.error("Upload error:", error);
