@@ -1,26 +1,82 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-primary: #0C0E12;
+  --bg-secondary: #13161C;
+  --bg-tertiary: #1A1D25;
+  --bg-hover: #1F2330;
+  --border: #252830;
+  --border-light: #2E3140;
+  --text-primary: #E8EAED;
+  --text-secondary: #9499A6;
+  --text-muted: #5D6272;
+  --accent: #6C9CFC;
+  --accent-muted: rgba(108, 156, 252, 0.12);
+  --accent-hover: #89B2FD;
+  --success: #4ADE80;
+  --success-muted: rgba(74, 222, 128, 0.12);
+  --error: #F87171;
+  --error-muted: rgba(248, 113, 113, 0.12);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
+  --font-sans: 'DM Sans', var(--font-geist-sans);
+  --font-mono: 'JetBrains Mono', var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+* { box-sizing: border-box; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* Typing animation */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.typing-cursor::after {
+  content: '▍';
+  color: var(--accent);
+  animation: blink 1s infinite;
+  margin-left: 1px;
+}
+
+/* Upload drag hover */
+.drag-active {
+  border-color: var(--accent) !important;
+  background: var(--accent-muted) !important;
+}
+
+/* Fade in animation */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  animation: fadeInUp 0.25s ease-out forwards;
+}
+
+/* Source card hover */
+.source-card {
+  transition: all 0.15s ease;
+}
+
+.source-card:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
 }
