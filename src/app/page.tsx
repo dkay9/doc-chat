@@ -14,7 +14,6 @@ interface Message {
 interface Doc {
   document_id: number;
   name: string;
-  chunks_stored: number;
   total_pages: number;
 }
 
@@ -22,14 +21,51 @@ export default function Home() {
   const [documents, setDocuments] = useState<Doc[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loadingDocs, setLoadingDocs] = useState(true);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Load existing documents on mount
+  useEffect(() => {
+    async function loadDocuments() {
+      try {
+        const res = await fetch("/api/documents");
+        if (res.ok) {
+          const data = await res.json();
+          setDocuments(
+            data.map((d: { id: number; name: string; metadata: { total_pages?: number } }) => ({
+              document_id: d.id,
+              name: d.name,
+              total_pages: d.metadata?.total_pages ?? 0,
+            }))
+          );
+        }
+      } catch {
+        // silently fail
+      } finally {
+        setLoadingDocs(false);
+      }
+    }
+    loadDocuments();
+  }, []);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleUploadComplete = useCallback((doc: Doc) => {
-    setDocuments((prev) => [...prev, doc]);
+  const handleUploadComplete = useCallback(
+    (doc: { document_id: number; name: string; chunks_stored: number; total_pages: number }) => {
+      setDocuments((prev) => [
+        { document_id: doc.document_id, name: doc.name, total_pages: doc.total_pages },
+        ...prev,
+      ]);
+      setSidebarOpen(false);
+    },
+    []
+  );
+
+  const handleDelete = useCallback((id: number) => {
+    setDocuments((prev) => prev.filter((d) => d.document_id !== id));
   }, []);
 
   const handleSend = useCallback(
@@ -95,8 +131,23 @@ export default function Home() {
 
   return (
     <div className="h-full flex">
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-20 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Left panel */}
-      <aside className="w-70 shrink-0 border-r border-(--border) bg-(--bg-secondary) flex flex-col">
+      <aside
+        className={`
+          fixed md:relative z-30 h-full w-70 shrink-0
+          border-r border-(--border) bg-(--bg-secondary) flex flex-col
+          transition-transform duration-200
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+        `}
+      >
         <div className="px-4 py-4 border-b border-(--border)">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-(--accent-muted) flex items-center justify-center">
@@ -116,7 +167,13 @@ export default function Home() {
 
         <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-3">
           <UploadZone onUploadComplete={handleUploadComplete} />
-          <DocumentList documents={documents} />
+          {loadingDocs ? (
+            <div className="flex items-center justify-center py-4">
+              <div className="w-4 h-4 border-2 border-(--accent) border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : (
+            <DocumentList documents={documents} onDelete={handleDelete} />
+          )}
         </div>
 
         <div className="px-4 py-3 border-t border-(--border)]">
@@ -126,15 +183,27 @@ export default function Home() {
 
       {/* Right panel */}
       <main className="flex-1 flex flex-col min-w-0">
-        <div className="px-5 py-3 border-b border-(--border) flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-medium text-foreground">
+        <div className="px-4 md:px-5 py-3 border-b border-(--border) flex items-center justify-between gap-3">
+          {/* Mobile menu button */}
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="md:hidden shrink-0 p-1.5 rounded-md hover:bg-(--bg-tertiary)"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-(--text-secondary)">
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+
+          <div className="flex-1 min-w-0">
+            <h2 className="text-sm font-medium text-foreground truncate">
               {hasDocuments
                 ? `Chatting with ${documents.length} document${documents.length > 1 ? "s" : ""}`
                 : "No documents uploaded"}
             </h2>
             {hasDocuments && (
-              <p className="text-[11px] text-(--text-muted) mt-0.5">
+              <p className="text-[11px] text-(--text-muted) mt-0.5 hidden sm:block">
                 Ask anything about your uploaded PDFs
               </p>
             )}
@@ -142,21 +211,21 @@ export default function Home() {
           {messages.length > 0 && (
             <button
               onClick={() => setMessages([])}
-              className="text-[11px] text-(--text-muted) hover:text-(--text-secondary) px-2 py-1 rounded-md hover:bg-(--bg-tertiary) transition-colors"
+              className="shrink-0 text-[11px] text-(--text-muted) hover:text-(--text-secondary) px-2 py-1 rounded-md hover:bg-(--bg-tertiary) transition-colors"
             >
               Clear chat
             </button>
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4">
+        <div className="flex-1 overflow-y-auto px-4 md:px-5 py-4">
           {messages.length === 0 ? (
             <div className="h-full flex items-center justify-center">
               <div className="text-center max-w-sm">
                 {hasDocuments ? (
                   <>
                     <div className="w-12 h-12 rounded-2xl bg-(--accent-muted) flex items-center justify-center mx-auto mb-4">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-(--accent)">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-(--accent)]">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                       </svg>
                     </div>
@@ -208,7 +277,7 @@ export default function Home() {
           )}
         </div>
 
-        <div className="px-5 py-3 border-t border-(--border)">
+        <div className="px-4 md:px-5 py-3 border-t border-(--border)">
           <div className="max-w-2xl mx-auto">
             <ChatInput onSend={handleSend} disabled={isStreaming || !hasDocuments} />
             {!hasDocuments && (
