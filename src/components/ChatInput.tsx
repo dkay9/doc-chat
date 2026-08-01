@@ -42,7 +42,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
         placeholder="Ask about your document..."
         rows={1}
         disabled={disabled}
-        className="flex-1 bg-transparent text-sm text-(--text-primary) placeholder-(--text-muted) resize-none outline-none leading-relaxed disabled:opacity-40"
+        className="flex-1 bg-transparent text-sm text-foreground placeholder-(--text-muted) resize-none outline-none leading-relaxed disabled:opacity-40"
       />
       <button
         onClick={handleSubmit}

@@ -25,8 +25,8 @@ export default function ChatMessage({
           shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium mt-0.5
           ${
             isUser
-              ? "bg-[var(--accent-muted)] text-[var(--accent)]"
-              : "bg-[var(--bg-tertiary)] text-[var(--text-muted)] border border-[var(--border)]"
+              ? "bg-(--accent-muted) text-(--accent)]"
+              : "bg-(--bg-tertiary) text-(--text-muted)] border border-(--border)"
           }
         `}
       >
@@ -40,8 +40,8 @@ export default function ChatMessage({
             rounded-xl px-3.5 py-2.5 text-[14px] leading-relaxed
             ${
               isUser
-                ? "bg-[var(--accent)] text-white rounded-br-sm"
-                : "bg-[var(--bg-tertiary)] text-[var(--text-primary)] border border-[var(--border)] rounded-bl-sm"
+                ? "bg-(--accent) text-white rounded-br-sm"
+                : "bg-(--bg-tertiary) text-foreground border border-(--border) rounded-bl-sm"
             }
           `}
         >
@@ -57,7 +57,7 @@ export default function ChatMessage({
               <span
                 key={src}
                 className="source-card inline-flex items-center gap-1 px-2 py-1 rounded-md
-                  text-[11px] font-medium text-[var(--accent)] bg-[var(--accent-muted)]
+                  text-[11px] font-medium text-(--accent) bg-(--accent-muted)
                   border border-transparent cursor-default"
               >
                 <svg

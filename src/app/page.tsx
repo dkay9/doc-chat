@@ -108,7 +108,7 @@ export default function Home() {
               </svg>
             </div>
             <div>
-              <h1 className="text-sm font-semibold text-(--text-primary)">DocChat</h1>
+              <h1 className="text-sm font-semibold text-foreground">DocChat</h1>
               <p className="text-[11px] text-(--text-muted)">Chat with your PDFs</p>
             </div>
           </div>
@@ -128,7 +128,7 @@ export default function Home() {
       <main className="flex-1 flex flex-col min-w-0">
         <div className="px-5 py-3 border-b border-(--border) flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-medium text-(--text-primary)">
+            <h2 className="text-sm font-medium text-foreground">
               {hasDocuments
                 ? `Chatting with ${documents.length} document${documents.length > 1 ? "s" : ""}`
                 : "No documents uploaded"}
@@ -160,7 +160,7 @@ export default function Home() {
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                       </svg>
                     </div>
-                    <h3 className="text-sm font-medium text-(--text-primary) mb-1">Ready to chat</h3>
+                    <h3 className="text-sm font-medium text-foreground mb-1">Ready to chat</h3>
                     <p className="text-[13px] text-(--text-muted) leading-relaxed">
                       Ask a question about your document and get answers with source references.
                     </p>
@@ -185,7 +185,7 @@ export default function Home() {
                         <line x1="12" y1="3" x2="12" y2="15" />
                       </svg>
                     </div>
-                    <h3 className="text-sm font-medium text-(--text-primary) mb-1">Upload a document to start</h3>
+                    <h3 className="text-sm font-medium text-foreground mb-1">Upload a document to start</h3>
                     <p className="text-[13px] text-(--text-muted) leading-relaxed">
                       Drop a PDF in the sidebar to begin chatting with it.
                     </p>
